@@ -18,28 +18,26 @@ pub fn read_file(path: &str) -> (Vec<Vec<usize>>,HashMap<String, usize>) {
             i = x_ind+1;
             result.push(Vec::new());
             assert_eq!(result.len(),i);
-            let y_ind = *map.entry(y.to_owned()).or_insert(i);
-            if y_ind >= i {
-                result.push(Vec::new());
-                i = y_ind+1;
-            }
-            result[x_ind].push(y_ind);
-        } else {
-            let y_ind = *map.entry(y.to_owned()).or_insert(i);
-            if y_ind >= i {
-                result.push(Vec::new());
-                result[x_ind].push(y_ind);
-                i = y_ind+1;
-            } else {
-                result[x_ind].push(y_ind);
-            }
+        } 
+        let y_ind = *map.entry(y.to_owned()).or_insert(i);
+        if y_ind >= i {
+            result.push(Vec::new());
+            i = y_ind+1;
         }
+        result[x_ind].push(y_ind);
+        result[y_ind].push(x_ind);
     }
     return (result, map)
 }
 
 fn main() {
     let (testa,testb) = read_file("./src/data/CC-Neuron_cci.tsv");
-    println!("{:?}",testa[0]);
-    println!("{:?}",testa.len());
+    let test = &testa[0];
+    let test2 = &testa[test[0]];
+    println!("{:?}",test);
+    println!("{:?}",test2);
+    println!("{:?}",&testa[test2[0]]);
+    // let test=testb.iter().find_map(|(key, &val)| if val == 0 { Some(key) } else { None });
+    // println!("{:?}",test.unwrap());
+    // println!("{:?}",testa.len());
 }
