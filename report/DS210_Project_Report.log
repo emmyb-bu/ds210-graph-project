@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.12.7)  14 DEC 2022 22:20
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.12.7)  15 DEC 2022 18:24
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -749,13 +749,13 @@ Package rerunfilecheck Info: File `DS210_Project_Report.out' has not changed.
 Here is how much of TeX's memory you used:
  23770 strings out of 478268
  466613 string characters out of 5846347
- 844239 words of memory out of 5000000
+ 845239 words of memory out of 5000000
  41636 multiletter control sequences out of 15000+600000
  470792 words of font info for 33 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 94i,5n,92p,490b,821s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 94i,5n,92p,490b,823s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb>
-Output written on DS210_Project_Report.pdf (1 page, 41922 bytes).
+Output written on DS210_Project_Report.pdf (1 page, 43834 bytes).
 PDF statistics:
  32 PDF objects out of 1000 (max. 8388607)
  22 compressed objects within 1 object stream
