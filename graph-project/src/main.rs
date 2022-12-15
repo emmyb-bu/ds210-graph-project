@@ -1,10 +1,10 @@
 use std::fs::File;
 use std::io::prelude::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap};
 use rand::Rng;
 
 
-fn read_string_graph(path: &str) -> (Vec<Vec<usize>>,HashMap<String, usize>) {
+fn read_string_graph(path: &str) -> (Graph,HashMap<String, usize>) {
     let preliminary_n_nodes = 1018525;
     let mut result: Vec<Vec<usize>> = Vec::with_capacity(preliminary_n_nodes);
     let file = File::open(path).expect("Could not open file");
@@ -35,13 +35,12 @@ fn read_string_graph(path: &str) -> (Vec<Vec<usize>>,HashMap<String, usize>) {
 }
 
 
+type SuperEdges = HashMap<usize,HashMap<usize,u128>>;
+type Graph = Vec<Vec<usize>>;
 
-type SuperNodes = HashMap<usize,HashSet<usize>>;
-type SuperEdges = HashMap<usize,HashMap<usize,usize>>;
-
-fn check_for_singletons(graph: &Vec<Vec<usize>>) {
+fn check_for_singletons(graph: &Graph) {
     for x in graph {
-        assert!(x.len() > 1, "There is a lone vertex!");
+        assert!(x.len() > 0, "There is a lone vertex!");
     }
 }
 
@@ -54,31 +53,38 @@ fn check_for_singletons(graph: &Vec<Vec<usize>>) {
 //     return 
 // }
 
-fn karger(graph: &Vec<Vec<usize>>) -> Vec<Vec<usize>> {
+fn karger(graph: &Graph) -> Graph {
     let n_nodes: usize = graph.len();
     // let mut super_nodes: SuperNodes = HashMap::with_capacity(n_nodes);
     // for v in 1..n_nodes {super_nodes.insert(v, HashSet::from([v]));};
     let mut super_edges: SuperEdges = HashMap::with_capacity(n_nodes);
     let mut i: usize = 0;
     for connections in graph {
-        super_edges.insert(i, HashMap::from_iter(connections.into_iter().map(|x| (*x,1usize)).collect::<Vec<(usize,usize)>>()));
+        super_edges.insert(i, HashMap::from_iter(connections.into_iter().map(|x| (*x,1u128)).collect::<Vec<(usize,u128)>>()));
         i += 1;
     }
     let mut valid_nodes: Vec<usize> = super_edges.clone().into_keys().collect();
     // let mut valid_nodes: Vec<usize> = (0..n_nodes).collect();
     let mut n_valid_nodes = valid_nodes.len();
-    let mut count_connections: Vec<usize> = valid_nodes.clone().iter().map(|i| super_edges.get(&i).unwrap().into_iter().map(|(_x,y)| y).sum()).collect();
-    assert_eq!(valid_nodes.len(),count_connections.len(),"Screaming and crying!");
+    // assert_eq!(valid_nodes.len(),count_connections.len(),"Screaming and crying!");
     // let mut count_connections: Vec<usize> = super_edges.clone().into_iter().map(|(_i,connections)| connections.into_iter().map(|(_x,y)| y).sum()).collect();
     // let mut max_connections: usize = *count_connections.iter().max().unwrap();
     loop {
-        let x_sample_index = rand::thread_rng().gen_range(0..count_connections.iter().sum());
+        // let total_connections = valid_nodes.clone().iter().map(|ii| super_edges.get(ii).unwrap().into_values()).sum();
+        let count_connections: Vec<u128> = valid_nodes.clone().iter().map(|i| super_edges.get(&i).unwrap().clone().into_values().sum()).collect();
+        let total_connections = count_connections.iter().sum();
+        // let total_connections = valid_nodes.clone().iter().map(|ii| count_connections[*ii]).sum();
+        let mut x_sample_index = 0;
+        if total_connections != 0 {
+            x_sample_index = rand::thread_rng().gen_range(0..total_connections)
+        }
         let mut x_node = 0;
-        let mut x_node_index: usize = 0;
-        for i in &valid_nodes {
-            x_node_index += count_connections[*i];
+        let mut x_node_index: u128 = 0;
+        for i in 0..valid_nodes.len() {
+            x_node_index += count_connections[i];
             if x_node_index >= x_sample_index {
-                x_node = *i;
+                x_node = valid_nodes[i];
+                break
             };
         }
         // let x_node = loop {
@@ -89,18 +95,21 @@ fn karger(graph: &Vec<Vec<usize>>) -> Vec<Vec<usize>> {
         //     }
         // };
         println!("generated xnode");
-        let y_sample_index: usize = rand::thread_rng().gen_range(0..count_connections[x_node]);
-        let mut y_node_index: usize = 0;
+        let count_x_connections = count_connections[valid_nodes.iter().position(|&r| r == x_node).unwrap()];
+        let mut y_node_index: u128 = 0;
         let mut y_node = 0;
         let mut n_xy_connections = 0;
-        for (i, connections) in super_edges.get(&x_node).unwrap() {
-            y_node_index += connections;
-            if y_node_index >= y_sample_index {
-                y_node = *i;
-                n_xy_connections = *connections;
-                break
+        if count_x_connections != 0 {
+            let y_sample_index: u128 = rand::thread_rng().gen_range(0..count_x_connections);
+            for (i, connections) in super_edges.get(&x_node).unwrap() {
+                y_node_index += connections;
+                if y_node_index >= y_sample_index {
+                    y_node = *i;
+                    n_xy_connections = *connections;
+                    break
+                }
             }
-        }
+       }
         // println!("generated ynode");
         let x_connections = super_edges.get(&x_node).unwrap().clone();
         // println!("x connections");
@@ -111,8 +120,8 @@ fn karger(graph: &Vec<Vec<usize>>) -> Vec<Vec<usize>> {
         for i in &valid_nodes {
             // iterate over valid nodes
             if i == &y_node {
-                // move x connections to y
                 let y_connections = super_edges.get_mut(&y_node).unwrap();
+                // move x connections to y
                 for (j, n_x_connections) in &x_connections {
                     match y_connections.get_mut(&j) {
                         None => {
@@ -139,24 +148,25 @@ fn karger(graph: &Vec<Vec<usize>>) -> Vec<Vec<usize>> {
                 let these_connections = super_edges.get_mut(&i).unwrap();
                 // transfer connections to x to connections to y
                 let these_connections_to_x = these_connections.get(&x_node).clone();
-                let mut y_connections: usize = 0;
+                let mut to_y_connections: u128 = 0;
                 match these_connections_to_x {
                     None => {},
                     Some(these_connections_to_x) => {
-                        y_connections = match these_connections.get(&y_node) {
+                        to_y_connections = match these_connections.get(&y_node) {
                             None => {
                                 *these_connections_to_x + (n_xy_connections)
                             },
                             Some(these_connections_to_y) => {
-                                these_connections_to_y + *these_connections_to_y + (n_xy_connections)
+                                *these_connections_to_y + (n_xy_connections)
                             }
                         };
                         }
                     }
-                    these_connections.insert(y_node,y_connections);
+                    these_connections.insert(y_node,to_y_connections);
                     these_connections.remove(&x_node);
                 }
             }
+            super_edges.get_mut(&y_node).unwrap().remove(&y_node);
             // println!("updates nodes");
             // max_connections = *count_connections.iter().max().unwrap();
             // if count_connections[i-1] > max_connections {max_connzections = count_connections[i-1]};
@@ -179,7 +189,7 @@ fn karger(graph: &Vec<Vec<usize>>) -> Vec<Vec<usize>> {
 
 
 fn main() {
-    // let graph: Vec<Vec<usize>> = vec![vec![1, 2], vec![1, 3], vec![1, 4], vec![1, 5], vec![2, 3], vec![2, 4], vec![2, 5], vec![3, 4], vec![3, 5], vec![4, 5], vec![6, 7], vec![6, 8], vec![6, 9], vec![6, 10], vec![7, 8], vec![7, 9], vec![7, 10], vec![8, 9], vec![8, 10], vec![9, 10], vec![1, 6], vec![2, 7]];
+    // let graph: Graph = vec![vec![1, 2], vec![1, 3], vec![1, 4], vec![1, 5], vec![2, 3], vec![2, 4], vec![2, 5], vec![3, 4], vec![3, 5], vec![4, 5], vec![6, 7], vec![6, 8], vec![6, 9], vec![6, 10], vec![7, 8], vec![7, 9], vec![7, 10], vec![8, 9], vec![8, 10], vec![9, 10], vec![1, 6], vec![2, 7]];
     // let mew = karger(&graph);
     let (testa,testb) = read_string_graph("./src/data/facebook_combined.txt");
     println!("Data loaded");
