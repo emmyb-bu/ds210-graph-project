@@ -1,15 +1,8 @@
 use std::collections::{HashMap};
 use rand::Rng;
 
-
 type SuperEdges = HashMap<usize,HashMap<usize,u128>>;
 type Graph = Vec<Vec<usize>>;
-
-pub fn check_for_singletons(graph: &Graph) {
-    for x in graph {
-        assert!(x.len() > 0, "There is a lone vertex!");
-    }
-}
 
 pub fn karger(graph: &Graph) -> Graph {
     let n_nodes: usize = graph.len();
@@ -54,7 +47,6 @@ pub fn karger(graph: &Graph) -> Graph {
        }
         let x_connections = super_edges.get(&x_node).unwrap().clone();
         valid_nodes.retain(|&x| x != x_node);
-        // println!("dropped x");
         for i in &valid_nodes {
             if i == &y_node {
                 let y_connections = super_edges.get_mut(&y_node).unwrap();
@@ -98,4 +90,15 @@ pub fn karger(graph: &Graph) -> Graph {
         }
     }
     return valid_nodes.iter().map(|i| super_edges.get(i).unwrap().clone().into_keys().collect() ).collect()
+}
+
+#[test]
+fn cut_a_simple_graph() {
+    // test if just one iteration actually performs a contraction
+    let example_graph = vec![
+        vec![1],
+        vec![0]
+    ];
+    let karger_results = karger(&example_graph);
+    assert_eq!(vec![vec![0]],karger_results);
 }

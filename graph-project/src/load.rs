@@ -2,11 +2,12 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::collections::{HashMap};
 
-
 type Graph = Vec<Vec<usize>>;
 
 pub fn read_string_graph(path: &str) -> (Graph,HashMap<String, usize>) {
-    let preliminary_n_nodes = 1018525;
+    // this function was originally written to read graph labels as strings and assign vertex #s
+    // this is why it uses and outputs a hashmap which associated vertex #s to label strings
+    let preliminary_n_nodes = 4100;
     let mut result: Vec<Vec<usize>> = Vec::with_capacity(preliminary_n_nodes);
     let file = File::open(path).expect("Could not open file");
     let buf_reader = std::io::BufReader::new(file).lines();
